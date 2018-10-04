@@ -1,0 +1,17 @@
+#Lee archivo ATUS. Se debe cambiar la ruta del archivo para cada usuario
+library(foreign)
+transit<- read.dbf("/Users/elcolegiodesonora/Documents/atus_16_dbf/ATUS_2016.dbf")
+
+#Selecciona solo los casos de colisiones con bicicleta
+acc.cicl=transit[ which(transit$TIPACCID ==11), ]
+
+#Genera tabla de accidentes por estado
+grup.cicl <- group_by(acc.cicl, EDO)
+acc.estado<- summarise(grup.cicl, ciclistas.muertos = sum(CICLMUERTO),
+                                      ciclistas.heridos =  sum(CICLHERIDO),
+                                      accidentes.de.ciclistas = sum(BICICLETA),
+                                      accidentes.interseccion = sum(URBANA==1)
+)
+#calcula probailidad de morir o salir herido en accidente
+acc.estado$prob.mort.ac= acc.estado$ciclistas.muertos /acc.estado$accidentes.de.ciclistas
+acc.estado$prob.herid.ac= acc.estado$ciclistas.heridos /acc.estado$accidentes.de.ciclistas
