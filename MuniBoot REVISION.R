@@ -1,7 +1,7 @@
 setwd("C:/Users/asalazar/Desktop/Rcode")
 library(readr)
 
-munief  <- read_csv("https://raw.githubusercontent.com/asalazaradams/data/main/Munis19.csv")
+munief  <- read_csv("https://raw.githubusercontent.com/asalazaradams/data/main/munis19ali.csv")
 
 #MODEL3
 
@@ -14,11 +14,24 @@ munief_D_0=dummy_cols(munief,select_columns = 'party')
 
 
 munief_D=dummy_cols(munief,select_columns = 'Estado')
+munief_D_1=dummy_cols(munief,select_columns = 'Ali')
+
 library(dplyr)
+munief_D_0=munief_D_0%>%select(clave_mun,party_LEFT,party_PAN,
+                    party_PANC,party_PRI,party_SNI)
+
+munief_D_1=munief_D_1%>%select(clave_mun,Ali_TRUE)
+
+
+
+munief_D=merge(munief_D,munief_D_0,by="clave_mun")
+munief_D=merge(munief_D,munief_D_1,y="clave_mun")
+
 library(rDEA)
 rsu.input=munief_D%>% select (staff,presupparcial)
 rsu.output=munief_D%>% select (waste,light,poli)
 rsu.env=munief_D%>% select    (loginc,
+                               indice_marg,
                                P60,
                                tax,
                                progtot,
@@ -30,39 +43,21 @@ rsu.env=munief_D%>% select    (loginc,
                                pagemed,
                                pageold,
                                pct_muj,
-                               rural, semirural, urbsmall,urbmed,
+                               Ali,
                                party_LEFT,party_PAN,party_PANC,party_PRI,party_SNI,
                                Estado_1,Estado_2,Estado_3,Estado_4,Estado_5,Estado_6,
                                Estado_7,Estado_8,Estado_10,Estado_11,Estado_12,Estado_13,
                                Estado_14,Estado_15,Estado_16,Estado_17,Estado_18,Estado_19,
                                Estado_20,Estado_21,Estado_22,Estado_23,Estado_24,Estado_25,
                                Estado_26,Estado_27,Estado_28,Estado_29,Estado_30,Estado_31)
-set.seed(123)
-start_time <- Sys.time()
-ooa.d.boot=dea.env.robust (X=rsu.input, Y=rsu.output,  Z=rsu.env, model="input", RTS="variable",
-                           L1=100, L2=2000, alpha=0.05)
-end_time <- Sys.time()
-end_time-start_time
 
-
-ooa.d.boot$beta_hat
-ooa.d.boot$delta_hat_hat
-eff_boot=1/ooa.d.boot$delta_hat_hat
-ooa.d.boot$beta_hat
-ooa.d.boot$beta_hat_hat
-ooa.d.boot$beta_hat_hat_star
-ooa.d.boot$beta_ci
-ooa.d.boot$sigma_ci
-
-summary(eff_boot)
-
-cor(rsu.env)
+            
 
 
 corrplot::set.seed(123)
 start_time <- Sys.time()
-ooa.d.boot.c=dea.env.robust (X=rsu.input, Y=rsu.output,  Z=rsu.env, model="input", RTS="constant",
-                           L1=100, L2=2000, alpha=0.1)
+ooa.d.boot.c=dea.env.robust (X=rsu.input, Y=rsu.output,  Z=rsu.env, model="input", RTS="variable",
+                           L1=100, L2=2000, alpha=0.5)
 end_time <- Sys.time()
 end_time-start_time
 
@@ -103,6 +98,29 @@ summary(eff_boot.crs)
 
 
 #vRS MODEL (95%)
+
+
+rsu.env=munief_D%>% select    (loginc,
+                               logpob,
+                               P60,
+                               tax,
+                               progtot,
+                               capreg,
+                               compstaff,
+                               ptemp,
+                               pcollege,
+                               logsal,
+                               pagemed,
+                               pageold,
+                               pct_muj,
+                               party_LEFT,party_PAN,party_PANC,party_PRI,party_SNI,
+                               Estado_1,Estado_2,Estado_3,Estado_4,Estado_5,Estado_6,
+                               Estado_7,Estado_8,Estado_10,Estado_11,Estado_12,Estado_13,
+                               Estado_14,Estado_15,Estado_16,Estado_17,Estado_18,Estado_19,
+                               Estado_20,Estado_21,Estado_22,Estado_23,Estado_24,Estado_25,
+                               Estado_26,Estado_27,Estado_28,Estado_29,Estado_30,Estado_31)
+
+         
 set.seed(123)
 start_time <- Sys.time()
 mun.vrs.95=dea.env.robust (X=rsu.input, Y=rsu.output,  Z=rsu.env, model="input", RTS="variable",
@@ -141,3 +159,25 @@ summary(munief$pobtot2018)
 
 
 
+rsu.env=munief_D%>% select (loginc,
+                               logpob,
+                               P60,
+                               tax,
+                               progtot,
+                               capreg,
+                               compstaff,
+                               ptemp,
+                               pcollege,
+                               logsal,
+                               pagemed,
+                               pageold,
+                               pct_muj)
+
+set.seed(123)
+start_time <- Sys.time()
+mun.vrs.simple=dea.env.robust (X=rsu.input, Y=rsu.output,  Z=rsu.env, model="input", RTS="variable",
+                           L1=100, L2=2000, alpha=0.05)
+end_time <- Sys.time()
+end_time-start_time
+
+mun.vrs.simple$beta_ci
